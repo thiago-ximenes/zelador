@@ -21,8 +21,11 @@ services:
       - ./estado-zelador:/estado-zelador
       - ./compartilhado:/compartilhado
       - ~/repos:/trabalho                            # os projetos que ele cuida
-      - ~/.claude:/root/.claude                      # skills, memoria, settings
-      - ~/.ssh:/root/.ssh:ro                         # git push
+      - ./casa:/casa                                 # HOME dele: .claude.json, sessoes, skills
+      - ~/.ssh:/casa/.ssh:ro                         # git push
+    # O socket e root:docker no host; o container roda como uid 1000, entao precisa do
+    # gid DESSE host (getent group docker) -- nao ha valor portatil para isso.
+    group_add: ["${DOCKER_GID:?rode: echo DOCKER_GID=$(getent group docker | cut -d: -f3) >> .env}"]
     mem_limit: 2g
     security_opt: [no-new-privileges:true]
     init: true
@@ -36,6 +39,10 @@ services:
     image: canal-telegram:local
     container_name: canal-zelador
     restart: unless-stopped
+    # Mesmo uid do dono dos volumes no host. O canal roda bem como root, mas ai tudo que
+    # ele cria em respostas/ nasce root:root -- e o zelador, que nao e root, nao consegue
+    # deixar a resposta em _saida/.
+    user: "1000:1000"
     environment:
       CANAL_DIR: /estado
       CANAL_NOME: zelador
