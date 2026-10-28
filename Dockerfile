@@ -26,7 +26,11 @@ COPY --from=build /src/target/release/zelador /usr/local/bin/zelador
 # HOME propria: o claude guarda ~/.claude.json ao lado da CLAUDE_CONFIG_DIR, e apontar
 # para o ~/.claude de uma pessoa deixa o agente achando o backup dela sem o arquivo --
 # "Claude configuration file not found", em loop.
-RUN mkdir -p /casa/.claude && chown -R node:node /casa
+# A home tambem muda no /etc/passwd, nao so em HOME: o OpenSSH expande o `~` pela
+# entrada do passwd, entao com /home/node ali ele procura o known_hosts no lugar
+# errado e todo push morre em "Host key verification failed".
+RUN mkdir -p /casa/.claude && chown -R node:node /casa \
+ && sed -i 's#:/home/node:#:/casa:#' /etc/passwd
 USER node
 ENV HOME=/casa \
     CLAUDE_CONFIG_DIR=/casa/.claude
