@@ -1,0 +1,46 @@
+# O zelador vive em compose PROPRIO, separado do stack que ele controla: no mesmo arquivo,
+# o primeiro `docker compose up -d` dele se derrubaria no meio da resposta.
+services:
+  zelador:
+    build: ..
+    image: zelador:local
+    container_name: zelador
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      CANAL_DIR: /estado                  # o MESMO estado do canal: caixa.tsv e _saida/
+      ZELADOR_ESTADO: /estado-zelador     # marca de leitura e session_id proprios
+      TRABALHO_DIR: /trabalho             # cwd do claude: onde os repos estao
+      CONTAS: /compartilhado/contas.json  # a folga das contas, compartilhada
+    volumes:
+      # O socket e o acesso ao Docker do host: com ele o zelador faz ps, logs, restart,
+      # build e up. Tambem e root na maquina na pratica -- por isso o bot dele e privado
+      # e o canal so aceita mensagem do seu chat.
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./estado-canal/respostas:/estado/respostas   # a caixa escrita pelo canal
+      - ./estado-zelador:/estado-zelador
+      - ./compartilhado:/compartilhado
+      - ~/repos:/trabalho                            # os projetos que ele cuida
+      - ~/.claude:/root/.claude                      # skills, memoria, settings
+      - ~/.ssh:/root/.ssh:ro                         # git push
+    mem_limit: 2g
+    security_opt: [no-new-privileges:true]
+    init: true
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  # O canal do bot DELE, do projeto canal-telegram. Token proprio, estado proprio.
+  canal:
+    build: ../../canal-telegram
+    image: canal-telegram:local
+    container_name: canal-zelador
+    restart: unless-stopped
+    environment:
+      CANAL_DIR: /estado
+      CANAL_NOME: zelador
+    volumes:
+      - ./estado-canal:/estado      # telegram.json {token, chat} + respostas/
+    mem_limit: 256m
+    security_opt: [no-new-privileges:true]
+    init: true

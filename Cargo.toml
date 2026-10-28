@@ -1,0 +1,17 @@
+[package]
+name = "zelador"
+version = "0.1.0"
+edition = "2021"
+
+# Duas dependencias: JSON (a saida do claude e o estado das contas) e relogio (a janela
+# de 5h e o "resets at 14:30" que vem no erro de limite). O resto e biblioteca padrao.
+[dependencies]
+serde_json = "1.0.133"
+chrono = "0.4.39"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
