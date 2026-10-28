@@ -5,7 +5,7 @@ O agente que cuida da máquina, e você fala com ele pelo Telegram.
 ```
  seu chat ──► bot proprio ──► canal-telegram ──► caixa.tsv
                                                     │
-                                        zelador (Rust, ~3 MB de plantao)
+                                      zelador (Rust, 632 KiB de plantao)
                                                     │
             ┌───────────────────┬───────────────────┴──────────────┐
             │                   │                                  │
@@ -20,7 +20,8 @@ no terminal, porque monta as suas skills, a sua memória e os seus repos.
 ## Por que em Rust
 
 O laço fica de pé 24 horas por dia sem fazer nada. Em Node isso custa ~13 MB de RSS
-parado; aqui custa ~3 MB, e a imagem do binário tem 2 MB.
+parado; aqui custa **632 KiB** — medido com `docker stats` no container ocioso. O
+binário tem 623 KB.
 
 Dito isso: **a imagem final tem 785 MB**, porque o `claude` é Node e precisa estar
 dentro dela, e cada rodada dele gasta de 300 MB a 1 GB de RAM. O Rust economiza o

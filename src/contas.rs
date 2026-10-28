@@ -164,6 +164,9 @@ impl Pool {
     }
 
     pub fn estado(&self) -> String {
+        if self.tokens.is_empty() {
+            return format!("nenhuma conta em CLAUDE_TOKEN_1..9 (contas: {})", self.arq.display());
+        }
         let mut e = self.ler();
         self.limpar(&mut e);
         let dele = e.get("ocupada").and_then(|o| o.get("conta")).and_then(|c| c.as_u64()).map(|c| c as u32);
